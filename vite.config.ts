@@ -8,24 +8,18 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
 
   // 嘗試讀取 Firebase 設定檔
-  let firebaseEnv = {};
+  let jsonConfig = {};
   try {
     const configPath = path.resolve(__dirname, 'firebase-applet-config.json');
     if (fs.existsSync(configPath)) {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      firebaseEnv = {
-        'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify(config.apiKey),
-        'import.meta.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify(config.authDomain),
-        'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify(config.projectId),
-        'import.meta.env.VITE_FIREBASE_STORAGE_BUCKET': JSON.stringify(config.storageBucket),
-        'import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID': JSON.stringify(config.messagingSenderId),
-        'import.meta.env.VITE_FIREBASE_APP_ID': JSON.stringify(config.appId),
-        'import.meta.env.VITE_FIREBASE_DATABASE_URL': JSON.stringify(config.databaseURL || `https://${config.projectId}.firebaseio.com`),
-      };
+      jsonConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
     }
   } catch (e) {
-    console.warn("Could not load firebase-applet-config.json for injection");
+    console.warn("Could not load firebase-applet-config.json, falling back to env vars");
   }
+
+  // 輔助函式：優先使用 JSON，否則使用環境變數
+  const getVal = (jsonKey, envKey) => JSON.stringify(jsonConfig[jsonKey] || env[envKey] || '');
 
   return {
     base: '/Z-Aim/',
@@ -35,7 +29,13 @@ export default defineConfig(({mode}) => {
     },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      ...firebaseEnv,
+      'import.meta.env.VITE_FIREBASE_API_KEY': getVal('apiKey', 'VITE_FIREBASE_API_KEY'),
+      'import.meta.env.VITE_FIREBASE_AUTH_DOMAIN': getVal('authDomain', 'VITE_FIREBASE_AUTH_DOMAIN'),
+      'import.meta.env.VITE_FIREBASE_PROJECT_ID': getVal('projectId', 'VITE_FIREBASE_PROJECT_ID'),
+      'import.meta.env.VITE_FIREBASE_STORAGE_BUCKET': getVal('storageBucket', 'VITE_FIREBASE_STORAGE_BUCKET'),
+      'import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID': getVal('messagingSenderId', 'VITE_FIREBASE_MESSAGING_SENDER_ID'),
+      'import.meta.env.VITE_FIREBASE_APP_ID': getVal('appId', 'VITE_FIREBASE_APP_ID'),
+      'import.meta.env.VITE_FIREBASE_DATABASE_URL': JSON.stringify(jsonConfig.databaseURL || env.VITE_FIREBASE_DATABASE_URL || (jsonConfig.projectId || env.VITE_FIREBASE_PROJECT_ID ? `https://${jsonConfig.projectId || env.VITE_FIREBASE_PROJECT_ID}.firebaseio.com` : '')),
     },
     resolve: {
       alias: {
