@@ -1,0 +1,5 @@
+{
+  "name": "Pixel Strike 3D",
+  "description": "A multiplayer 3D FPS game inspired by Shell Shockers, featuring room-based PVP, Google login, and multiple weapons.",
+  "requestFramePermissions": []
+}
