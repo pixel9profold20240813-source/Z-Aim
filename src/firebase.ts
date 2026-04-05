@@ -13,6 +13,11 @@ const firebaseConfig = {
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
 };
 
+// 檢查 API Key 是否存在
+if (!firebaseConfig.apiKey) {
+  console.error("Firebase API Key is missing! Please check your environment variables or GitHub Secrets.");
+}
+
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);
