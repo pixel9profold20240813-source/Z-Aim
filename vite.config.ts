@@ -28,7 +28,7 @@ export default defineConfig(({mode}) => {
   }
 
   return {
-    base: './',
+    base: '/Z-Aim/',
     plugins: [react(), tailwindcss()],
     build: {
       target: 'esnext'
